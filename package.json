@@ -1,0 +1,11 @@
+{
+  "name": "node-proftp-map",
+  "version": "0.0.1",
+  "author": "Stephen Heron <stephen.heron@gmail.com>",
+  "description": "A simple http and socket.io server that plots proftp logins on a google map",
+  "dependencies" : {
+    "express"     :  "2.5.11",
+    "socket.io"   :  "0.9.6",
+    "geoip-lite"  :  "1.0.8"
+  }
+}

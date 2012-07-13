@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+    <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map_canvas { height: 100% }
+    </style>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript"
+      src="http://maps.googleapis.com/maps/api/js?key=AIzaSyCE3WkXQqpv35fi6J7VPtMvHdin9t-DjF4&sensor=false">
+    </script>
+    <script type="text/javascript">
+      $(function() {
+        var myOptions = {
+          center: new google.maps.LatLng(51.470, -0.453),
+          zoom: 3,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+        var socket = io.connect('http://localhost');
+        markers = [];
+        setInterval(remove_old_markers, 15000, markers);
+        socket.on('update', function (update) {
+          console.log(update.action);
+          if(update.action == "login"){
+            var image = '/images/webcam-small.png';
+          } else if(update.action == 'login_failed'){
+            console.log("FAILED");
+            var image = '/images/pirates-small.png';
+          }
+          var lat_lng = new google.maps.LatLng(update.ll[0],update.ll[1]);
+          var marker = new google.maps.Marker({
+            position: lat_lng,
+            map: map,
+            animation: google.maps.Animation.DROP,
+            title:update.username,
+            icon: image
+          });
+          marker.action = update.action;
+          marker.timestamp = new Date().getTime();
+          remove_duplicate_markers(marker, markers);
+          markers.push(marker);
+        });
+      });
+
+      function remove_duplicate_markers(marker, markers){
+        var counter = 0;
+        for(i in markers){
+          duplicate_marker = markers[i];
+          if(duplicate_marker.position){
+            if(marker.position.toString() === duplicate_marker.position.toString()){
+              counter++;
+              if(counter > 5){
+                markers[i].setMap(null);
+                markers[i].setPosition(null);
+                counter--;
+              }
+            }
+          }
+        }
+      }
+
+      function remove_old_markers(markers){
+        now = new Date().getTime();
+        for(i in markers){
+          if(markers[i].timestamp < (now - 300000)){
+            console.log(markers[i]);
+            markers[i].setMap(null);
+          }
+        }
+      }
+
+    </script>
+  </head>
+  <body>
+    <div id="map_canvas" style="width:100%; height:100%"></div>
+  </body>
+</html>
